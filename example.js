@@ -1,4 +1,11 @@
-A = Private.Class({
+X = Private.class({
+    'private init':function(){
+        this.a();
+    },
+    'abstract a':null
+});
+
+A = Private.class(X,{
     'private init': function () { //init function is called automatically.
         this.pr = 1; //private member
         this.setPublic('pu', 2); //set public member
@@ -12,10 +19,13 @@ A = Private.Class({
     },
     'o':function(){
         return 4;
+    },
+    'a':function(){
+        return 'A.a';
     }
 });
 
-B = Private.Class(A, { //extended from "A"
+B = Private.class(A, { //extended from "A"
     'private init': function () {
         this.priv();
     },
@@ -30,9 +40,20 @@ B = Private.Class(A, { //extended from "A"
     },
     'oo':function(){
         return this.o(); //private "o" hides the parent's "o", but only in B's methods.
+    },
+    'private a':function(){
+        return 'B.a';
+    },
+    'x':function(){
+        return this.a();
     }
 });
 
+try{
+    var x=new X();
+}catch(e){
+    console.log(e)
+}
 
 var a = new A();
 console.log(a.priv); //undefined

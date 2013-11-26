@@ -31,36 +31,68 @@
     function proxy(method, id) {
         return function () {
             return method.apply(this._private[id], arguments);
-        }
+        };
     }
 
     function Class(parent, methods) {
-        var i, privateMethods = {}, parts;
+        var id = ++nextid;
+        var i, privateMethods = {}, abstractMethods={},hasAbstract=false, parts;
         if (!methods) {
             methods = parent;
             parent = null;
         }
 
-        for (i in methods) { //separate private methods
+        for (i in methods) { //separate private and abstract methods
             parts = i.split(' ');
-            if (parts[0] === 'private') {
-                privateMethods[parts[1]] = methods[i];
-                delete methods[i];
+            if(parts.length>1){
+                switch (parts[0]) {
+                    case 'private':
+                        privateMethods[parts[1]] = methods[i];
+                        delete methods[i];
+                        break;
+                    case 'abstract':
+                        abstractMethods[parts[1]] = methods[i];
+                        hasAbstract = true;
+                        delete methods[i];
+                        break;
+                    default:
+                        throw 'Undefined keyword ' + parts[0];
+
+                }
+            }
+        }
+        
+        if(parent){
+            for(i in parent.abstractMethods){
+                if(abstractMethods[i]===undefined && methods[i]===undefined){
+                    throw 'Abstract method '+i+' is not implemented or marked abstract!';
+                }
             }
         }
 
         function Class() {
-
-            if (parent) {
-                parent.apply(this, arguments);
-            } else {
-                this._private = {};
+            var current=Class, cid;
+            if(hasAbstract){ //disable abstract class instantiation
+                throw 'Trying to instantiate an abstract class!';
             }
+            
+            this._private = {};
+            
             PrivateDataAndMethods.prototype = this;
-            this._private[id] = new PrivateDataAndMethods(privateMethods);
-            this._private[id]._public = this;
-            this._private[id].init.apply(this._private[id], arguments);
+            while(current!==null){
+                cid=current.id;
+                //console.log(cid);
+                this._private[cid] = new PrivateDataAndMethods(current.privateMethods);
+                this._private[cid]._public = this;
+                this._private[cid].init.apply(this._private[cid], arguments);
+                current=current.parent;
+            }
         }
+        
+        Class.parent=parent;
+        Class.privateMethods=privateMethods;
+        Class.abstractMethods=abstractMethods;
+        Class.id=id;
 
         if (parent) {
             PublicMethods.prototype = parent.prototype;
@@ -72,16 +104,16 @@
             Class.prototype._parent = parent;
         }
 
-        var id = ++nextid;
 
         for (i in methods) {
             Class.prototype[i] = proxy(methods[i], id);
         }
+        
 
         return Class;
     }
 
     Private = {
-        Class: Class
+        class: Class
     };
 })();
