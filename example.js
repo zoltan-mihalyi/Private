@@ -1,11 +1,11 @@
 X = Private.class({
-    'private init':function(){
+    'private init': function () {
         this.a();
     },
-    'abstract a':null
+    'abstract a': null
 });
 
-A = Private.class(X,{
+A = Private.class(X, {
     'private init': function () { //init function is called automatically.
         this.pr = 1; //private member
         this.setPublic('pu', 2); //set public member
@@ -17,10 +17,10 @@ A = Private.class(X,{
     'publ': function () {
         return this.pr + this.pu; //private and public members are accessible in public methods.
     },
-    'o':function(){
+    'o': function () {
         return 4;
     },
-    'a':function(){
+    'a': function () {
         return 'A.a';
     }
 });
@@ -35,24 +35,24 @@ B = Private.class(A, { //extended from "A"
     'publ': function () { //override A's publ method
         return this.pr + this.parent('publ'); //call parent's public method
     },
-    'private o':function(){ //calling "o" outside B's methods refers A.o
+    'private o': function () { //calling "o" outside B's methods refers A.o
         return 5;
     },
-    'oo':function(){
+    'oo': function () {
         return this.o(); //private "o" hides the parent's "o", but only in B's methods.
     },
-    'private a':function(){
+    'private a': function () {
         return 'B.a';
     },
-    'x':function(){
+    'x': function () {
         return this.a();
     }
 });
 
-try{
-    var x=new X();
-}catch(e){
-    console.log(e)
+try {
+    var x = new X(); //abstract class cannot be instantiated.
+} catch (e) {
+    console.log(e);
 }
 
 var a = new A();
