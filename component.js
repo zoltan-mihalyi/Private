@@ -9,6 +9,9 @@
             this._public[name] = value;
         },
         parent: function (name) {
+            if(!this._parent){
+                throw 'No parent class!';
+            }
             var method = this._parent.prototype[name];
             if (method) {
                 return method.apply(this, [].slice.call(arguments, 1));
@@ -35,8 +38,7 @@
     }
 
     function Class(parent, methods) {
-        var id = ++nextid;
-        var i, privateMethods = {}, abstractMethods = {}, finalMethods={}, hasAbstract = false, parts;
+        var id = ++nextid, realName, Class, current, i, privateMethods = {}, abstractMethods = {}, finalMethods={}, declaredMethods={}, hasAbstract = false, parts;
         if (!methods) {
             methods = parent;
             parent = null;
@@ -44,63 +46,87 @@
 
         for (i in methods) { //separate private and abstract methods
             parts = i.split(' ');
+            
             if (parts.length > 1) {
+                realName=parts[1]; //real 
+                
                 switch (parts[0]) {
                     case 'private':
-                        privateMethods[parts[1]] = methods[i];
+                        privateMethods[realName] = methods[i];
                         delete methods[i];
                         break;
                     case 'abstract':
-                        abstractMethods[parts[1]] = methods[i];
+                        abstractMethods[realName] = methods[i];
                         hasAbstract = true;
                         delete methods[i];
                         break;
                     case 'final':
-                        finalMethods[parts[1]] = methods[i];
+                        finalMethods[realName] = methods[i];
                         break;
                     default:
                         throw 'Undefined keyword ' + parts[0];
 
                 }
+            }else{
+                realName=i;
             }
+            if(realName in declaredMethods){ //duplicate method with different modifier
+                throw 'Method ' + realName + ' is duplicated with different modifiers.';
+            }
+            declaredMethods[realName]=methods[i];
         }
-
+        
         if (parent) {
-            for (i in parent.abstractMethods) {
+            for (i in parent.abstractMethods) { //abstract check
                 if (abstractMethods[i] === undefined && methods[i] === undefined) {
                     throw 'Abstract method ' + i + ' is not implemented or marked abstract!';
                 }
             }
-
-            for (i in parent.finalMethods) { //TODO recursive upwards
-                if(i in methods){
-                    throw 'Final method ' + i +' cannot be overridden.';
+            
+            current=parent;
+            while(current!==null){ //final check
+                for (i in current.finalMethods) {
+                    if(i in methods){
+                        throw 'Final method ' + i +' cannot be overridden.';
+                    }
                 }
+                current=current.parent;
+            }
+            
+            current=parent;
+            while(current!==null){ //mark abstract a method implemented in parent classes?
+                for (i in current.methods) {
+                    if(i in abstractMethods){
+                        throw 'Cannot mark abstract method ' + i +', which is implemented in an ancestor class.';
+                    }
+                }
+                current=current.parent;
             }
         }
-
-        function Class() {
-            var current = Class, cid;
-            if (hasAbstract) { //disable abstract class instantiation
+        if (hasAbstract) { //disable abstract class instantiation
+            Class=function(){
                 throw 'Trying to instantiate an abstract class!';
-            }
+            };
+        }else{
+            Class=function() {
+               var current = Class, cid;
+               this._private = {};
 
-            this._private = {};
-
-            PrivateDataAndMethods.prototype = this;
-            while (current !== null) {
-                cid = current.id;
-                this._private[cid] = new PrivateDataAndMethods(current.privateMethods);
-                this._private[cid]._public = this;
-                this._private[cid].init.apply(this._private[cid], arguments);
-                current = current.parent;
-            }
+               PrivateDataAndMethods.prototype = this;
+               while (current !== null) {
+                   cid = current.id;
+                   this._private[cid] = new PrivateDataAndMethods(current.privateMethods);
+                   this._private[cid]._public = this;
+                   this._private[cid].init.apply(this._private[cid], arguments);
+                   current = current.parent;
+               }
+           };
         }
-
         Class.parent = parent;
         Class.privateMethods = privateMethods;
         Class.abstractMethods = abstractMethods;
         Class.finalMethods = finalMethods;
+        Class.methods=methods;
         Class.id = id;
 
         if (parent) {
