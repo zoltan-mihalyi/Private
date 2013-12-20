@@ -2,7 +2,8 @@ X = Private.class({
     'private init': function () {
         this.a();
     },
-    'abstract a': null
+    'abstract a': null,
+    'static st': 15
 });
 
 A = Private.class(X, {
@@ -55,6 +56,8 @@ try {
     console.log(e);
 }
 
+console.log(X.st); //15
+
 var a = new A();
 console.log(a.priv); //undefined
 console.log(a.pr); //undefined
@@ -70,3 +73,4 @@ console.log(b.pu); //2
 console.log(b.publ());//b5
 console.log(b.o());//4
 console.log(b.oo());//5
+console.log(b.a.origin === A); //true
