@@ -44,3 +44,39 @@ new A() ------> I Public  I      I
                 +---------+
 
 ```
+
+How does it look like with inheritance assuming B is a superclass of A?
+
+``
+
+               +-----------+
+               I Public B  I
+               I proxy     I -------+ The methods of B use the private data of B as context
+               I methods   I        I
+               +-----^-----+        I
+                     I              I
+           __proto__ I              I
+                     I              I
+               +-----+-----+        I
+               I Public A  I        I
+               I proxy     I --+    I The methods of A use the private data of A as context
+               I methods   I   I    I
+               +-----^-----+   I    I
+                     I         I    I
+           __proto__ I         I    I
+                     I         I    I
+                +----+----+    I    I
+new A() ------> I Public  I    I    I
+                I members I    I    I
+                +-^-----^-+    I    I
+                 /       \     I    I
+                /__proto__\    I    I
+               /           \   I    I
+         +----+----+   +----+--v-+  I
+         I Private I   I Private I  I
+         I data of I   I data of I  I    Different classes in the inheritance chain
+         I B       I   I A       I  I    don't share their private data.
+         +------^--+   +---------+  I
+                I                   I
+                +-------------------+
+``
