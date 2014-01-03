@@ -47,7 +47,7 @@ new A() ------> I Public  I      I
 
 How does it look like with inheritance assuming B is a superclass of A?
 
-``
+```
 
                +-----------+
                I Public B  I
@@ -79,4 +79,4 @@ new A() ------> I Public  I    I    I
          +------^--+   +---------+  I
                 I                   I
                 +-------------------+
-``
+```
