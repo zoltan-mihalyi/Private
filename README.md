@@ -9,6 +9,25 @@ Private: simple class and inheritance system, with easy private member and metho
 - Final methods
 - Lots of fun
 
+Take a look:
+```
+A = Private.class({
+    getX: function(){
+        return this.x;
+    },
+    setX: function(x){
+        this.x = x;
+    }
+});
+
+var a = new A();
+a.setX(42);
+console.log(a.x); //undefined
+console.log(a.getX()); //42
+```
+
+Check out what you can do: https://github.com/zoltan-mihalyi/Private/blob/master/example.js
+
 How does it work?
 -----------------
 
